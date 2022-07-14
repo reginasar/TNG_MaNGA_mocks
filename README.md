@@ -39,6 +39,8 @@ For step 1 access to TNG simulations is required, as well as installing illustri
 
 # Fast Docs
 
+Key arguments together with the outputs of the main functions are defined below. If you want more, feel free to dig into the code :)
+
 <strong>mk_particle_files</strong>():
 
     Makes the stellar particle and gas cells files for a subhalo living in
@@ -90,7 +92,6 @@ For step 1 access to TNG simulations is required, as well as installing illustri
 
 <strong>mk_mock_RSS</strong>():
 		
-    """ 
     Reads particle/cell files and feeds it to mk_the_light() function.
 
     Arguments:
@@ -123,12 +124,10 @@ For step 1 access to TNG simulations is required, as well as installing illustri
     Outputs:
     RSS file produced by mk_the_light() funtion.
 
-    """
 
     
 <strong>mk_the_light</strong>():
 	      
-    """ 
     Given the particle/cell properties, SSP template and the IFU type
     produces the fiber spectra.
 
@@ -178,7 +177,7 @@ For step 1 access to TNG simulations is required, as well as installing illustri
     Outputs:
     -------
     FITS file containing the row stacked spectrum (RSS).
-    """
+
     
 <strong>regrid</strong>():
 
