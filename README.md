@@ -37,7 +37,7 @@ For step 1 access to TNG simulations is required, as well as installing illustri
 ### References
 
 
-# Docs
+# Fast Docs
 
 mk_particle_files(subhalo_id, snap, basePath, ex=[1,0,0], FOV=19, overwrite=True, view=0, outdir=''):
 
