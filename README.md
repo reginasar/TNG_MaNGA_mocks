@@ -87,3 +87,19 @@ mk_particle_files(subhalo_id, snap, basePath, ex=[1,0,0], FOV=19, overwrite=True
          - temperature in K.
          - Av extinction index.
          - mass in solar masses.
+
+mk_mock_RSS(snap, subhalo, view, sp_samp=1., template_SSP_control, template_SSP, template_gas, outdir='', fib_n=7, cpu_count=2\
+                psf=0, nl=110, fov=30.0, fov1=0.2, sig=2.5, thet=0.0, rx=[0,0.5,1.0,2.0], ifutype='MaNGA', red_0=0.01, indir=''):
+
+    Reads particle/cell files and feeds it to mk_the_light function.
+    
+mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g, vz_g, age_s, met_s, mass_s, met_g, vol, dens, sfri, temp_g,\
+              Av_g, mass_g, template_SSP_control, template_SSP, template_gas, dir_o='', sp_samp=1.25, psfi=0,\
+              red_0=0.01, nl=7, cpu_count=8, fov=30.0, sig=2.5, thet=0.0, pdf=2, rx=[0,0.5,1.0,2.0],\
+              ifutype='MaNGA'):
+	      
+    Given the particle/cell properties, SSP template and the IFU type produces the fiber spectra.
+    
+regrid(rss_file, template_SSP_control, dir_r='', dir_o='', n_fib=7, thet=0.0, R_eff=None, include_gas=False):
+
+
