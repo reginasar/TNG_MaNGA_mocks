@@ -39,7 +39,7 @@ For step 1 access to TNG simulations is required, as well as installing illustri
 
 # Fast Docs
 
-mk_particle_files(subhalo_id, snap, basePath, ex=[1,0,0], FOV=19, overwrite=True, view=0, outdir=''):
+<strong>mk_particle_files</strong>():
 
     Makes the stellar particle and gas cells files for a subhalo living in
     snapshot snap, observed in ex direction covering a field of view 
@@ -88,18 +88,98 @@ mk_particle_files(subhalo_id, snap, basePath, ex=[1,0,0], FOV=19, overwrite=True
          - Av extinction index.
          - mass in solar masses.
 
-mk_mock_RSS(snap, subhalo, view, sp_samp=1., template_SSP_control, template_SSP, template_gas, outdir='', fib_n=7, cpu_count=2\
-                psf=0, nl=110, fov=30.0, fov1=0.2, sig=2.5, thet=0.0, rx=[0,0.5,1.0,2.0], ifutype='MaNGA', red_0=0.01, indir=''):
+<strong>mk_mock_RSS</strong>():
+		
+    """ 
+    Reads particle/cell files and feeds it to mk_the_light() function.
 
-    Reads particle/cell files and feeds it to mk_the_light function.
+    Arguments:
+    ----------
+    star_file: file with stellar particles info. (string)
+    gas_file: file with gas cells info. (string)
+    template_SSP_control: SSP template file name for control. (string)
+    template_SSP: SSP template file name to produce the stellar 
+                  spectra. (string)
+    template_gas: gas template file name to produce the emission lines.
+                  (string)
+    sp_samp (=1.): spectral sampling in Ang. (float)
+    fib_n (=7): fiber number radius, defines de IFU size. (integer in [3,4,5,6,7])
+    cpu_count (=2): number of CPUs to be used in parallel. (integer)
+                    Ignored if environment variable 'SLURM_CPUS_PER_TASK' 
+                    is defined.
+    psfi (=0): instantaneous point spread function (PSF as FWHM). (float)
+    thet (=0.0): angular offset. (float)
+    ifutype (='MaNGA'): IFU options fixed to IFS instrument. 
+                       (string in ['MaNGA', 'CALIFA', 'MUSE'])
+    red_0 (=0.01):redshift at which the galaxy is placed. (float)
+    outdir (=''): output directory path. (string)
+    indir (=''): input directory path. (string)
+    rssf (=''): RSS output file name. (string)
+
+    Returns:
+    -------
+    -
+
+    Outputs:
+    RSS file produced by mk_the_light() funtion.
+
+    """
+
     
-mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g, vz_g, age_s, met_s, mass_s, met_g, vol, dens, sfri, temp_g,\
-              Av_g, mass_g, template_SSP_control, template_SSP, template_gas, dir_o='', sp_samp=1.25, psfi=0,\
-              red_0=0.01, nl=7, cpu_count=8, fov=30.0, sig=2.5, thet=0.0, pdf=2, rx=[0,0.5,1.0,2.0],\
-              ifutype='MaNGA'):
+<strong>mk_the_light</strong>():
 	      
-    Given the particle/cell properties, SSP template and the IFU type produces the fiber spectra.
+    """ 
+    Given the particle/cell properties, SSP template and the IFU type
+    produces the fiber spectra.
+
+    Arguments:
+    ----------
+    outf: output file name. (string)
+    stellar particle and gas cells properties (each a float array):
+      Stellar
+         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+           (z in the direction of the observer).
+         - vx, vy, vz velocity components relative to the volume in km/s.
+         - age in Gyrs.
+         - metallicity in Z/H.
+         - mass in solar masses.
+      Gas
+         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+           (z in the direction of the observer).
+         - vx, vy, vz velocity components relative to the volume in km/s.
+         - metallicity in Z/H.
+         - volume in kpc**3.
+         - density in solar masses/ kpc**3.
+         - star formation rate in solar masses per yr.
+         - temperature in K.
+         - Av extinction index.
+         - mass in solar masses.    
+    template_SSP_control: SSP template file name for control. (string)
+    template_SSP: SSP template file name to produce the stellar 
+                  spectra. (string)
+    template_gas: gas template file name to produce the emission lines.
+                  (string)
+    sp_samp (=1.25): spectral sampling in Ang. (float)
+    dir_o (=''): output directory. (string)
+    psfi (=0): instantaneous point spread function (PSF as FWHM). (float)
+    red_0 (=0.01): redshift at which the galaxy is placed. (float)
+    nl (=7): fiber number radius, defines de IFU size. (integer in [3,4,5,6,7])
+    cpu_count (=8): number of CPUs to be used in parallel. (integer)
+                    Ignored if environment variable 'SLURM_CPUS_PER_TASK' 
+                    is defined.
+    thet (=0.0): angular offset. (float)
+    ifutype (='MaNGA'): IFU options fixed to IFS instrument. 
+                       (string in ['MaNGA', 'CALIFA', 'MUSE'])
+
+    Returns:
+    -------
+    -
+
+    Outputs:
+    -------
+    FITS file containing the row stacked spectrum (RSS).
+    """
     
-regrid(rss_file, template_SSP_control, dir_r='', dir_o='', n_fib=7, thet=0.0, R_eff=None, include_gas=False):
+<strong>regrid</strong>():
 
 
