@@ -1,12 +1,8 @@
 # MaNGA mocks from TNG50 galaxies
 
-This is code is based partially based on https://github.com/hjibarram/mock_ifu, a code to emulate a MaNGA observation from a numerically simulated galaxy.
+This is the code used for the data release "". In this article we present the mocking procedure to mimic the integral spectroscopic data from the MaNGA survey (~10,000 galaxies) from the TNG50 hydro-dynamical simulation. 
 
-The code has been updated to Python3 and some libraries have been replaced with more standard ones (see requirements below). The steps of the procedure are separated to provide more versatility to the user. Additionally, one part of the code has been adapted to run in parallel.
-
-This is the code used for the data release "". Where the sample selection was done with -  mk_mangalike_tng_sample.py  - and each mock observation was produced following steps described in the next section. 
-
-Running times heavily depend on the number of particles in the simulation's field of view and bundle size choice. It is possible to parallelize the "fiber obsevation" (step 3), which reduces the computing time.
+The sample selection was done with -  mk_mangalike_tng_sample.py  - and each mock observation was produced following steps described in the next section. This second part of the code is based partially based on https://github.com/hjibarram/mock_ifu, a code to emulate a MaNGA observation from a numerically simulated galaxy. The code has been updated to Python3 and some libraries have been replaced with more standard ones (see requirements below). The steps of the procedure are separated to provide more versatility to the user. Additionally, one part of the code has been adapted to run in parallel. Running times heavily depend on the number of particles in the simulation's field of view and bundle size choice. It is possible to parallelize the "fiber obsevation" (step 2), which reduces the computing time.
 
 ## Steps to create a MaNGA mock:
 
@@ -34,5 +30,6 @@ Python3 (Numpy, Astropy, Scipy)
 
 For step 1 access to TNG simulations is required, as well as installing illustris_python module.
 
+### References
 
 
