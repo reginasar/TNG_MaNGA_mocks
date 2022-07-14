@@ -37,3 +37,53 @@ For step 1 access to TNG simulations is required, as well as installing illustri
 ### References
 
 
+# Docs
+
+mk_particle_files(subhalo_id, snap, basePath, ex=[1,0,0], FOV=19, overwrite=True, view=0, outdir=''):
+
+    Makes the stellar particle and gas cells files for a subhalo living in
+    snapshot snap, observed in ex direction covering a field of view 
+    of 2FOV of diameter.
+
+    Arguments:
+    ----------
+    subhalo_id: subhalo index in the snapshot. (integer)
+    snap: snapshot number. (integer with value in [1;99]) 
+    basePath: path to simulation data. (string) 
+    ex (=[1,0,0]): unitary 3-D vector indicating the direction in which
+                   the observer is placed. (2-sized float array)
+    FOV (=19): radius of the circular field of view in arcsec. (float)
+    view (=0): view identifier. (integer)
+    overwrite: (bool)
+    outdir: path where the output files are saved. (string)
+
+    Returns:
+    -------
+    -
+
+    Outputs:
+    -------
+    Stellar particles and gas cells information in two individual 
+    files:
+
+    'snap'+snap+'_shalo'+subhalo_id+'_'+view+'_stars.dat'
+    Contains as many rows as stellar particles in the FOV, columns are defined as:
+         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+           (z in the direction of the observer).
+         - vx, vy, vz velocity components relative to the volume in km/s.
+         - age in Gyrs.
+         - metallicity in Z/H.
+         - mass in solar masses.
+
+    'snap'+snap+'_shalo'+subhalo_id+'_'+view+'_gas.dat'
+    Contains as many rows as gas cells in the FOV, columns are defined as:
+         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+           (z in the direction of the observer).
+         - vx, vy, vz velocity components relative to the volume in km/s.
+         - metallicity in Z/H.
+         - volume in kpc**3.
+         - density in solar masses/ kpc**3.
+         - star formation rate in solar masses per yr.
+         - temperature in K.
+         - Av extinction index.
+         - mass in solar masses.
