@@ -70,7 +70,7 @@ Key arguments together with the outputs of the main functions are defined below.
 
     'snap'+snap+'_shalo'+subhalo_id+'_'+view+'_stars.dat'
     Contains as many rows as stellar particles in the FOV, columns are defined as:
-         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+         - x, y, z coordinates relative to the observer in physical kpcs
            (z in the direction of the observer).
          - vx, vy, vz velocity components relative to the volume in km/s.
          - age in Gyrs.
@@ -79,7 +79,7 @@ Key arguments together with the outputs of the main functions are defined below.
 
     'snap'+snap+'_shalo'+subhalo_id+'_'+view+'_gas.dat'
     Contains as many rows as gas cells in the FOV, columns are defined as:
-         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+         - x, y, z coordinates relative to the observer in physical kpcs
            (z in the direction of the observer).
          - vx, vy, vz velocity components relative to the volume in km/s.
          - metallicity in Z/H.
@@ -136,14 +136,14 @@ Key arguments together with the outputs of the main functions are defined below.
     outf: output file name. (string)
     stellar particle and gas cells properties (each a float array):
       Stellar
-         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+         - x, y, z coordinates relative to the observer in physical kpcs
            (z in the direction of the observer).
          - vx, vy, vz velocity components relative to the volume in km/s.
          - age in Gyrs.
          - metallicity in Z/H.
          - mass in solar masses.
       Gas
-         - x, y, z coordinates relative to the galaxy centre in physical kpcs
+         - x, y, z coordinates relative to the observer in physical kpcs
            (z in the direction of the observer).
          - vx, vy, vz velocity components relative to the volume in km/s.
          - metallicity in Z/H.
@@ -180,5 +180,46 @@ Key arguments together with the outputs of the main functions are defined below.
 
     
 <strong>regrid</strong>():
+
+    Computes the spectral data cube from the row stacked spectra. 
+    Downgrades the gas emission spectral resolution and adds noise to 
+    each spectrum before combining the fiber spectra. 
+
+    Arguments:
+    ----------
+    rss_file: Input RSS file name. (string)
+    outf: Output file name, without extensions. (string)
+    template_SSP_control:  SSP template file name for control. (string)
+    dir_r (=''): Input directory, where the RSS file is stored.(string)
+    dir_o (=''): Output directory. (string)
+    n_fib (=7): 
+    thet (=0.0):
+    R_eff (=None): Effective raius of the galaxy, to define S/N. (float)
+    include_gas (=False): include emission lines in the output cube. (bool)
+
+
+    Returns:
+    -------
+    -
+
+    Outputs:
+    -------
+    Two FITS files:
+    
+    outf + '.cube.fits.gz'
+    File comprising a Primary HDU and three extensions:
+       Primary - Spatial-spectral datacube.
+       ERROR - Error per spatial-wavelength unit.
+       MASK - Valid mask array, necessary for pyPipe3D processing.
+       GAS - Gas only spatial-spectral datacube.
+    
+    outf + '.cube_val.fits.gz'
+    File comprising a Primary HDU and three extensions:
+       Primary - Spatial real values from simulations.
+       MASS_PER_AGE - Total mass assigned to each age in the template.
+       MASS_PER_AGE_MET - Total mass assigned to each age and 
+                          metallicityin the template.
+       LUM_PER_AGE_MET - Total luminosity assigned to each age and 
+                         metallicity in the template.
 
 
