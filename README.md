@@ -31,6 +31,8 @@ Python3: Numpy, Astropy, Scipy
 
 For step 1 access to TNG simulations is required, as well as installing illustris_python module. Publicly available at https://www.tng-project.org/data/ 
 
+SSP templates in pyPipe3D format: http://ifs.astroscu.unam.mx/pyPipe3D/templates/
+
 ### References
 
 
