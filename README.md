@@ -1,4 +1,6 @@
-# MaNGA mocks from TNG50 galaxies
+[MaNGIA_prototype.pdf](https://github.com/reginasar/TNG_MaNGA_mocks/files/9609465/MaNGIA_prototype.pdf)
+
+# 10,000 MaNGA mocks from TNG50 galaxies
 
 This is the code used for the data release "". In this article we present the mocking procedure to mimic the galaxy integral spectroscopic data from the MaNGA survey (~10,000 galaxies) from the TNG50 hydro-dynamical cosmological simulation. 
 
