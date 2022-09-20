@@ -1,4 +1,5 @@
-[MaNGIA_prototype.pdf](https://github.com/reginasar/TNG_MaNGA_mocks/files/9609465/MaNGIA_prototype.pdf)
+<img width="747" alt="Captura de pantalla 2022-09-20 a las 17 14 03" src="https://user-images.githubusercontent.com/50836927/191310929-e7d325ce-7036-4cbb-a304-acf69ef5910a.png">
+
 
 # 10,000 MaNGA mocks from TNG50 galaxies
 
