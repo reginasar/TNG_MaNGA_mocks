@@ -39,7 +39,7 @@ SSP templates in pyPipe3D format: http://ifs.astroscu.unam.mx/pyPipe3D/templates
 ### References
 
 
-# Fast Docs
+# Quick Docs
 
 Key arguments together with the outputs of the main functions are defined below. If you want more, feel free to dig into the code :)
 
