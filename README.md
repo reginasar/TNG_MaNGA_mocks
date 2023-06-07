@@ -105,7 +105,6 @@ Key arguments together with the outputs of the main functions are defined below.
                   spectra. (string)
     template_gas: gas template file name to produce the emission lines.
                   (string)
-    sp_samp (=1.): spectral sampling in Ang. (float)
     fib_n (=7): fiber number radius, defines de IFU size. (integer in [3,4,5,6,7])
     cpu_count (=2): number of CPUs to be used in parallel. (integer)
                     Ignored if environment variable 'SLURM_CPUS_PER_TASK' 
@@ -118,6 +117,9 @@ Key arguments together with the outputs of the main functions are defined below.
     outdir (=''): output directory path. (string)
     indir (=''): input directory path. (string)
     rssf (=''): RSS output file name. (string)
+    wave_samp (=[3749, 10352, 1]): spectral sampling array in Ang given by
+              [initial wavelength, final wavelength, step]. (float list N=3)
+    err_dith (=0.): maximum random shift in the dithering positions in arcsec. (float)
 
     Returns:
     -------
@@ -125,6 +127,7 @@ Key arguments together with the outputs of the main functions are defined below.
 
     Outputs:
     RSS file produced by mk_the_light() funtion.
+
 
 
     
@@ -142,13 +145,13 @@ Key arguments together with the outputs of the main functions are defined below.
            (z in the direction of the observer).
          - vx, vy, vz velocity components relative to the volume in km/s.
          - age in Gyrs.
-         - metallicity in Z/H.
+         - metallicity in Z.
          - mass in solar masses.
       Gas
          - x, y, z coordinates relative to the observer in physical kpcs
            (z in the direction of the observer).
          - vx, vy, vz velocity components relative to the volume in km/s.
-         - metallicity in Z/H.
+         - metallicity in Z.
          - volume in kpc**3.
          - density in solar masses/ kpc**3.
          - star formation rate in solar masses per yr.
@@ -160,7 +163,6 @@ Key arguments together with the outputs of the main functions are defined below.
                   spectra. (string)
     template_gas: gas template file name to produce the emission lines.
                   (string)
-    sp_samp (=1.25): spectral sampling in Ang. (float)
     dir_o (=''): output directory. (string)
     psfi (=0): instantaneous point spread function (PSF as FWHM). (float)
     red_0 (=0.01): redshift at which the galaxy is placed. (float)
@@ -171,6 +173,9 @@ Key arguments together with the outputs of the main functions are defined below.
     thet (=0.0): angular offset. (float)
     ifutype (='MaNGA'): IFU options fixed to IFS instrument. 
                        (string in ['MaNGA', 'CALIFA', 'MUSE'])
+    wave_samp (=[3749, 10352, 1]): spectral sampling array in Ang given by
+              [initial wavelength, final wavelength, step]. (float list N=3)
+    err_dith (=0.): maximum random shift in the dithering position in arcsec. (float)
 
     Returns:
     -------
@@ -179,13 +184,12 @@ Key arguments together with the outputs of the main functions are defined below.
     Outputs:
     -------
     FITS file containing the row stacked spectrum (RSS).
-
     
 <strong>regrid</strong>():
 
     Computes the spectral data cube from the row stacked spectra. 
     Downgrades the gas emission spectral resolution and adds noise to 
-    each spectrum before combining the fiber spectra. 
+    each spectrum before combining the fiber spectra.
 
     Arguments:
     ----------
@@ -198,6 +202,10 @@ Key arguments together with the outputs of the main functions are defined below.
     thet (=0.0):
     R_eff (=None): Effective raius of the galaxy, to define S/N. (float)
     include_gas (=False): include emission lines in the output cube. (bool)
+    noise (=[5, 2]): noise parameters, first corresponds to S/N desired,
+             while the second is the radius [Re] at which the signal S is 
+             referenced. (list or float array with size 2) Note that Re must
+             be given to add noise.
 
 
     Returns:
@@ -210,18 +218,16 @@ Key arguments together with the outputs of the main functions are defined below.
     
     outf + '.cube.fits.gz'
     File comprising a Primary HDU and three extensions:
-       Primary - Spatial-spectral datacube.
-       ERROR - Error per spatial-wavelength unit.
-       MASK - Valid mask array, necessary for pyPipe3D processing.
-       GAS - Gas only spatial-spectral datacube.
+       PRIMARY - Spatial-spectral datacube.
+       EXT: ERROR - Error per spatial-wavelength unit.
+       EXT: MASK - Valid mask array, necessary for pyPipe3D processing.
+       EXT: GAS - Gas only spatial-spectral datacube.
     
     outf + '.cube_val.fits.gz'
     File comprising a Primary HDU and three extensions:
-       Primary - Spatial real values from simulations.
-       MASS_PER_AGE - Total mass assigned to each age in the template.
-       MASS_PER_AGE_MET - Total mass assigned to each age and 
-                          metallicityin the template.
-       LUM_PER_AGE_MET - Total luminosity assigned to each age and 
-                         metallicity in the template.
+       PRIMARY - Intrinsic and assigned values from the simulation.
+       EXT: MASS_PER_AGE - Mass decomposition per age in SSP.
+       EXT: MASS_PER_AGE_MET - Mass decomposition per age and metallicity in SSP.
+       EXT: LUM_PER_AGE_MET - Luminosity decomposition per age and metallicity in SSP.
 
-
+    """
