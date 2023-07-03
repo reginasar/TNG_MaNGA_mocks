@@ -4,12 +4,14 @@ import shutil
 import warnings
 import numpy as np
 import multiprocessing as mp
+import logging
 #import illustris_python as il
 from os import remove
 from astropy.io import fits
 from scipy.interpolate.interpolate import interp1d
 from scipy.spatial.distance import cdist
 from astropy.cosmology import Planck15 as cosmo
+
 
 warnings.filterwarnings("ignore")
 
@@ -992,7 +994,7 @@ def thread_dither(args):
          mass_s, facto, d_r, rad_g, Av_g, in_gas, in_ssp, band_g, gas_template, n_ages,\
          n_mets, v_rad, v_rad_g, n_lib_mod, dust_rat_ssp, ssp_template, ml_ssp, radL, wave,\
          dlam, dlam_g, sigma_inst, sp_res, wave_f, sfri, wave_g, dust_rat_gas, ha_gas, \
-         radL_g, met_g, ssp_age, ssp_met = args
+         radL_g, met_g, age_ssp, met_ssp = args
     con = i * ns + j
     spec_ifu = np.zeros([nw])
     spec_ifu_e = np.zeros([nw])
@@ -1018,8 +1020,8 @@ def thread_dither(args):
     yo = yifu + dyf*dit[i,1]  
     s_box = np.arange(len(phie))[(np.abs(xo-phie)<=fibB*scalep/2.0) & (np.abs(yo-thee)<=fibB*scalep/2.0)]
     g_box = np.arange(len(phieg))[(np.abs(xo-phieg)<=fibB*scalep/2.0) & (np.abs(yo-theeg)<=fibB*scalep/2.0)]
-    r = cdist(np.stack((phie[s_box],thee[s_box])).T, [(xo, yo)])
-    r_g = cdist(np.stack((phieg[g_box],theeg[g_box])).T, [(xo, yo)])
+    r = cdist(np.stack((phie[s_box],thee[s_box])).T, [(xo, yo)])[:, 0]
+    r_g = cdist(np.stack((phieg[g_box],theeg[g_box])).T, [(xo, yo)])[:, 0]
     nt = s_box[r <= fibB*scalep/2.0]
     nt_g = g_box[r_g <= fibB*scalep/2.0]
     #r = np.sqrt((xo-phie)**2.0+(yo-thee)**2.0)
@@ -1269,7 +1271,7 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
               vz_g, age_s, met_s, mass_s, met_g, vol, dens, sfri, temp_g,\
               Av_g, mass_g, template_SSP_control, template_SSP,\
               template_gas, wave_samp=[3749,10352,1], dir_o='', psfi=0,\
-              red_0=0.01, nl=7, cpu_count=8, thet=0.0, ifutype='MaNGA', err_dith=0.):
+              red_0=0.01, nl=7, cpu_count=8, thet=0.0, ifutype='MaNGA', err_dith=0., ran_seed=12345):
     """ 
     Given the particle/cell properties, SSP template and the IFU type
     produces the fiber spectra.
@@ -1314,6 +1316,7 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
     wave_samp (=[3749, 10352, 1]): spectral sampling array in Ang given by
               [initial wavelength, final wavelength, step]. (float list N=3)
     err_dith (=0.): maximum random shift in the dithering position in arcsec. (float)
+    ran_seed (=12345): seed for random dithering shift. (integer)
 
     Returns:
     -------
@@ -1451,9 +1454,11 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
     dxt = Dfib/2.0
     ndt = 3
     dit = np.zeros([ndt,2])
-    dit[0,:] = [+0.00,+0.00]+ran.randn(2)*err_dith
-    dit[1,:] = [+0.00,+dyt/1.0]+ran.randn(2)*err_dith
-    dit[2,:] = [-dxt, +dyt/2.0]+ran.randn(2)*err_dith
+    rng = np.random.default_rng(ran_seed)
+    ran_dit_shift = rng.random(size=(ndt, 2))
+    dit[0,:] = [+0.00,+0.00] + ran_dit_shift[0] * err_dith
+    dit[1,:] = [+0.00,+dyt/1.0] + ran_dit_shift[1] * err_dith
+    dit[2,:] = [-dxt, +dyt/2.0] + ran_dit_shift[2] * err_dith
 
     
     ssp_template, wave, age_ssp, met_ssp, ml_ssp, crval_w, cdelt_w, \
@@ -1484,21 +1489,25 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
     y_ifu = np.zeros(ndt*ns)
     facto = (pix_s)**2.0 / (np.pi*(fibB*scalep/2.0)**2.0)#*np.pi
 
+
     args0 = [(seeing, ns, ndt, rad, 0, j, xifu[j], yifu[j], dit, phi, the, phi_g, the_g, fibB,\
              scalep, nw_s, nw, nw_g, age_ssp3, met_ssp3, ml_ssp3, age_s, met_s,\
              mass_s, facto, d_r, rad_g, Av_g, in_gas, in_ssp, band_g, gas_template, n_ages, \
              n_mets, v_rad, v_rad_g, n_lib_mod, dust_rat_ssp, ssp_template, ml_ssp, radL, wave,\
-             dlam, dlam_g, sigma_inst, sp_res, wave_f, sfri, wave_g, dust_rat_gas, ha_gas, radL_g, met_g, ssp_age, ssp_met) for j in range(ns)]
+             dlam, dlam_g, sigma_inst, sp_res, wave_f, sfri, wave_g, dust_rat_gas, ha_gas, radL_g,\
+            met_g, age_ssp, met_ssp) for j in range(ns)]
     args1 = [(seeing, ns, ndt, rad, 1, j, xifu[j], yifu[j], dit, phi, the, phi_g, the_g, fibB,\
              scalep, nw_s, nw, nw_g, age_ssp3, met_ssp3, ml_ssp3, age_s, met_s,\
              mass_s, facto, d_r, rad_g, Av_g, in_gas, in_ssp, band_g, gas_template, n_ages, \
              n_mets, v_rad, v_rad_g, n_lib_mod, dust_rat_ssp, ssp_template, ml_ssp, radL, wave,\
-            dlam, dlam_g, sigma_inst, sp_res, wave_f, sfri, wave_g, dust_rat_gas, ha_gas, radL_g, met_g, ssp_age, ssp_met) for j in range(ns)]
+            dlam, dlam_g, sigma_inst, sp_res, wave_f, sfri, wave_g, dust_rat_gas, ha_gas, radL_g,\
+            met_g, age_ssp, met_ssp) for j in range(ns)]
     args2 = [(seeing, ns, ndt, rad, 2, j, xifu[j], yifu[j], dit, phi, the, phi_g, the_g, fibB,\
              scalep, nw_s, nw, nw_g, age_ssp3, met_ssp3, ml_ssp3, age_s, met_s,\
              mass_s, facto, d_r, rad_g, Av_g, in_gas, in_ssp, band_g, gas_template, n_ages, \
              n_mets, v_rad, v_rad_g, n_lib_mod, dust_rat_ssp, ssp_template, ml_ssp, radL, wave,\
-             dlam, dlam_g, sigma_inst, sp_res, wave_f, sfri, wave_g, dust_rat_gas, ha_gas, radL_g, met_g, ssp_age, ssp_met) for j in range(ns)]
+             dlam, dlam_g, sigma_inst, sp_res, wave_f, sfri, wave_g, dust_rat_gas, ha_gas, radL_g,\
+              met_g, age_ssp, met_ssp) for j in range(ns)]
     args = args0 + args1 + args2
 
 
@@ -1576,7 +1585,7 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
     h7 = fits.ImageHDU(sim_imag3)
     h8 = fits.ImageHDU(x_ifu)
     h9 = fits.ImageHDU(y_ifu)
-    h10 = fits.ImageHDU(np.stack((n_star, n_gas), dtype=np.int32))
+    h10 = fits.ImageHDU(np.array(np.stack((n_star, n_gas)), dtype=np.int32))
 
     h = h1.header
     h['NAXIS'] = 3
@@ -1698,7 +1707,8 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
 def mk_mock_RSS(star_file, gas_file, template_SSP_control,\
                 template_SSP, template_gas, fib_n=7, cpu_count=2,\
                 psfi=0, thet=0.0, ifutype='MaNGA', red_0=0.01, \
-                outdir='', indir='', rssf='', wave_samp=[3749,10352,1], err_dith=0.): #snap, subhalo, view
+                outdir='', indir='', rssf='', wave_samp=[3749,10352,1], err_dith=0.,
+                ran_seed=1234): #snap, subhalo, view
     """ 
     Reads particle/cell files and feeds it to mk_the_light() function.
 
@@ -1726,6 +1736,7 @@ def mk_mock_RSS(star_file, gas_file, template_SSP_control,\
     wave_samp (=[3749, 10352, 1]): spectral sampling array in Ang given by
               [initial wavelength, final wavelength, step]. (float list N=3)
     err_dith (=0.): maximum random shift in the dithering positions in arcsec. (float)
+    ran_seed (=12345): seed for random dithering shift. (integer)
 
     Returns:
     -------
@@ -1799,7 +1810,7 @@ def mk_mock_RSS(star_file, gas_file, template_SSP_control,\
               wave_samp=wave_samp, template_SSP_control=template_SSP_control, \
               template_SSP=template_SSP, template_gas=template_gas, psfi=psfi, \
               dir_o=outdir, red_0=red_0, nl=fib_n, cpu_count=cpu_count,\
-              thet=thet, ifutype=ifutype, err_dith=err_dith)
+              thet=thet, ifutype=ifutype, err_dith=err_dith, ran_seed=ran_seed)
 
 
 
@@ -2215,7 +2226,7 @@ def regrid(rss_file, outf, template_SSP_control, dir_r='', dir_o='', \
     compress_gzip(out_fit1)
     print('Cube_val done.')
 
-def mk_intrinsic_assigned_maps(indir, outdir, star_file, fib_n=7, red_0=0.01, template_SSP, ifutype='MaNGA', psfi=0):
+def mk_intrinsic_assigned_maps(indir, outdir, star_file, template_SSP, fib_n=7, red_0=0.01, ifutype='MaNGA', psfi=0):
     """ 
     Reads stellar particle file and creates LW- and MW-age and -metallicity maps 
     of based on the assigned properties from the stellar template selected.
