@@ -15,6 +15,7 @@ def iterative_bubble_match(sample1, sample2, max_step=40, mr_lim=[], \
     item_ids = np.arange(sample2.shape[0], dtype=np.int32)
     non_rep = []
     unas = []
+    rep_sample2_all = []
 
     sample2_norm = np.zeros_like(sample2)
     sample1_norm = np.zeros_like(sample1)
@@ -23,18 +24,10 @@ def iterative_bubble_match(sample1, sample2, max_step=40, mr_lim=[], \
         sample2_norm[:, ii] = np.copy(sample2[:, ii])/mr_lim[ii]
         sample1_norm[:, ii] = np.copy(sample1[:, ii])/mr_lim[ii]
 
-    #sample_match, sample_match_labels = bubble_sample_match_fixedZ(manga_mr, tng_pack_,\
-    #            m_lim=m_lim, r_lim=r_lim, random=random, seed=seed, radius=radius)
     sample_match, dist_match = bubble_sample_match(sample1_norm, sample2_norm,\
                 item_ids=item_ids, mr_lim=mr_lim, random=False, seed=seed, radius=radius)
-    #print(manga_mzr.shape[0])
-    #non_rep.extend(np.array([np.intersect1d(sample_match[sample_match[:,0]==ii,1],\
-    #        sample_match[sample_match[:,0]==ii,1]).size for ii in range(87,99)]))
     non_rep.extend(np.intersect1d(sample_match, sample_match))
 
-    iterate = True
-#    while(iterate==True):
-    rep_sample2_all = []
     for kk in range(max_step):
         rep_sample1, rep_sample2 = repeated_items(orig_samp_ids[sample_match!=-1], \
                 sample_match[sample_match!=-1], dist_match[sample_match!=-1], more_than=more_than)
@@ -54,7 +47,6 @@ def iterative_bubble_match(sample1, sample2, max_step=40, mr_lim=[], \
             #sample_match_labels[rep_sample1,:] = sample_match_labels_2
         except IndexError:
             print('No more items in sample2 within range')
-
 
     rep_sample1, rep_sample2 = repeated_items(orig_samp_ids[sample_match!=-1], \
                 sample_match[sample_match!=-1], dist_match[sample_match!=-1], more_than=more_than)
@@ -139,11 +131,11 @@ def get_sample2_rest(rep_sample2_ids, item_ids):
 
     return remaining_ids
 
-
-# Setup example, as defined in the publication
-# selected_tng array saves de snapshot and subhalo IDs of the matching 
-# counterparts, in the sample order as the original sample (MaNGA in this case)
-
+#################################################################################
+# Setup example, as defined in the publication.                                 #
+# selected_tng array saves de snapshot and subhalo IDs of the matching          #
+# counterparts, in the sample order as the original sample (MaNGA in this case) #
+#################################################################################
 
 snap_id = [99, 98, 97, ...] # snapshot numbers
 tng_pack = {99: [...], 98: [...]} # dictionary with all possible galaxies 
