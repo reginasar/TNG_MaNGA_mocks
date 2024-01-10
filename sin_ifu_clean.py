@@ -4,11 +4,10 @@ import shutil
 import warnings
 import numpy as np
 import multiprocessing as mp
-import logging
-#import illustris_python as il
+import illustris_python as il
 from os import remove
 from astropy.io import fits
-from scipy.interpolate.interpolate import interp1d
+from scipy.interpolate import interp1d
 from scipy.spatial.distance import cdist
 from astropy.cosmology import Planck15 as cosmo
 
@@ -99,9 +98,9 @@ def mk_particle_files(subhalo_id, snap, basePath, ex=[1,0,0], FOV=19, overwrite=
          - mass in solar masses.
     """
 
-    vx = [1,0,0]
-    vy = [0,1,0]
-    vz = [0,0,1]
+    vx_ = [1,0,0]
+    vy_ = [0,1,0]
+    vz_ = [0,0,1]
     R3_ = np.array([[1,0,0],[0,1,0],[0,0,1]])
     Ev = np.transpose(np.array([vx_,vy_,vz_]))
     snapz_dict = {99:0., 98:0.012, 97:0.023, 96:0.035, 95:0.048, 94:0.06, 
@@ -135,7 +134,7 @@ def mk_particle_files(subhalo_id, snap, basePath, ex=[1,0,0], FOV=19, overwrite=
     Halo_stars_vel = Halo_stars['Velocities'][Halo_stars_age_orig>=0, :] * np.sqrt(a)
     vx, vy, vz = Halo_stars_vel[:,0], Halo_stars_vel[:,1], Halo_stars_vel[:,2]
     Halo_stars_met = Halo_stars['GFM_Metallicity'][Halo_stars_age_orig>=0]
-    Halo_stars_age = (1-Halo_stars_age_orig[Halo_stars_age_orig>=0])*cosmo.age(1/snapt_dict[snap[ii]]-1).value
+    Halo_stars_age = (1-Halo_stars_age_orig[Halo_stars_age_orig>=0])*cosmo.age(1/snapt_dict[snap]-1).value
         
     Halo_gas = il.snapshot.loadHalo(basePath, snap, halo_id, partType=0, fields=fields_g)
     Halo_gas_mass = Halo_gas['Masses'][:] * 1e10 / h
@@ -367,7 +366,7 @@ def cube_conv_lsf(wavelengths, spec, resolution, delta_wl=100):
         
     resolution: 
         'MaNGA', manga median resolution
-        np.float, fixed resolution per wl 
+        np.single, fixed resolution per wl 
         float array, same shape as wavelengths
         Defines the light spread function resolution as FWHM.
         [-]
@@ -448,7 +447,7 @@ def simpson_r(f,x,i1,i2,typ=0):
     a = x[i1]
     h = (b-a) / n
     s = f[i1] + f[i2]
-    n = int(n)
+    n = np.int32(n)
     dx = b - a
     for ii in range(1, n, 2):
         s += 4 * f[i1+ii]
@@ -558,8 +557,8 @@ def associate_ssp(age_s, met_s, age, met):
     met_t = met_s
     age_a.extend([age_t[0]])
     met_a.extend([met_t[0]])
-    ind_ssp = np.zeros((len(age)), dtype=np.int)
-    ind_ssp[:] = np.nan
+    ind_ssp = np.zeros((len(age)), dtype=np.int64)
+    #ind_ssp[:] = np.nan
     for ii in range(1, nssp):
         if age_t[ii-1] > age_t[ii]:
             ban =1
@@ -629,7 +628,7 @@ def associate_gas(phot_s, met_s, den_s, tem_s, phot, met, den, tem):
     met_a.extend([met_t[0]])
     den_a.extend([den_t[0]])
     tem_a.extend([tem_t[0]])
-    ind_gas = np.zeros((len(met)), dtype = np.int)
+    ind_gas = np.zeros((len(met)), dtype = np.int64)
     ind_gas[:] = -100
     for i in range(1, nssp):
         if phot_t[i-1] > phot_t[i]:
@@ -711,7 +710,7 @@ def associate_pho(ssp_temp, wave, age_s, met_s, ml, mass, met, \
     met_t = met_s
     age_a.extend([age_t[0]])
     met_a.extend([met_t[0]])
-    ind_ssp = np.zeros((len(age)), dtype=np.int)
+    ind_ssp = np.zeros((len(age)), dtype=np.int64)
     photo = np.zeros(len(age))
     ind_ssp[:] = -100
     for ii in range(1, nssp):
@@ -884,15 +883,15 @@ def ssp_extract(template):
         MET = data[1]
         if 'Myr' in AGE:
             age = AGE.replace('Myr','')
-            age = np.float(age)/1000.
+            age = np.single(age)/1000.
         else:
             age = AGE.replace('Gyr','')
-            age = np.float(age)
-        met = np.float(MET.replace('z','0.'))
+            age = np.single(age)
+        met = np.single(MET.replace('z','0.'))
         age_mod.extend([age])
         met_mod.extend([met])
         header = 'NORM' + str(iii)    
-        val_ml = np.float(hdr[header])
+        val_ml = np.single(hdr[header])
         if val_ml != 0:
             ml.extend([1/val_ml])
         else:
@@ -930,7 +929,7 @@ def gas_extract(template):
     met_mod: template metallicity values. (m-sized float array)
     den_mod: template density values. (m-sized float array)
     tem_mod: template temperature values. (m-sized float array)
-    ml: mass-luminosity weighting factors per spectrum.(m-sized np.float 
+    ml: mass-luminosity weighting factors per spectrum.(m-sized np.single
         array)
     crval: Axis1 value from template header. (float)
     cdelt: Axis1 value from template header. (float)
@@ -963,16 +962,16 @@ def gas_extract(template):
         PHT = data[2]
         DEN = data[1]
         MET = data[0]
-        tem = np.float(TEM.replace('t', ''))
-        pht = np.float(PHT.replace('q', ''))
-        den = np.float(DEN.replace('n', ''))
-        met = np.float(MET.replace('z', ''))
+        tem = np.single(TEM.replace('t', ''))
+        pht = np.single(PHT.replace('q', ''))
+        den = np.single(DEN.replace('n', ''))
+        met = np.single(MET.replace('z', ''))
         tem_mod.extend([tem])    
         pht_mod.extend([pht])
         den_mod.extend([den])
         met_mod.extend([met])
         header = 'NORM' + str(iii)    
-        val_ml = np.float(hdr[header])
+        val_ml = np.single(hdr[header])
         Ha.extend([val_ml])
     wave_c = []
     dpix_c_val = []
@@ -1271,7 +1270,8 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
               vz_g, age_s, met_s, mass_s, met_g, vol, dens, sfri, temp_g,\
               Av_g, mass_g, template_SSP_control, template_SSP,\
               template_gas, wave_samp=[3749,10352,1], dir_o='', psfi=0,\
-              red_0=0.01, nl=7, cpu_count=8, thet=0.0, ifutype='MaNGA', err_dith=0., ran_seed=12345):
+              red_0=0.01, nl=7, cpu_count=8, thet=0.0, ifutype='MaNGA', \
+              err_dith=0., ran_seed=12345):
     """ 
     Given the particle/cell properties, SSP template and the IFU type
     produces the fiber spectra.
@@ -1368,7 +1368,8 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
         scp_s = 300.0#150.0#300.0#1200.0#microns per arcsec
         fibA = 150.0
         fibB = 120.0
-        nl = int(fov*scp_s/fibA/2)+1
+        fov = 15.
+        nl = np.int32(fov*scp_s/fibA/2)+1
         sigma_inst = 25.0
         beta_s = 4.7
         if psfi <= 0:
@@ -1513,7 +1514,7 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
 
 
     if 'SLURM_CPUS_PER_TASK' in os.environ:
-        cpu_count = int(os.environ['SLURM_CPUS_PER_TASK'])
+        cpu_count = np.int32(os.environ['SLURM_CPUS_PER_TASK'])
         print('Using slurm number of CPUs...')
     print(cpu_count, ' CPUs employed.')
     
@@ -1554,17 +1555,18 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
 
     else:
         pool = mp.Pool(cpu_count)
-        intermediate = np.array(pool.map(thread_dither, args))
-        spec_ifu = np.vstack(intermediate[:,0])
-        spec_val = np.vstack(intermediate[:,1])
-        spec_ifu_g = np.vstack(intermediate[:,2])
-        sim_imag = np.vstack(intermediate[:,3])
-        sim_imag2 = np.stack(intermediate[:,4])
-        sim_imag3 = np.stack(intermediate[:,5])
-        x_ifu = np.stack(intermediate[:,6])
-        y_ifu = np.stack(intermediate[:,7])
-        n_star = np.stack(intermediate[:,8])
-        n_gas = np.stack(intermediate[:,9])
+        spec_ifu, spec_val, spec_ifu_g, sim_imag, sim_imag2, sim_imag3, x_ifu,\
+        y_ifu, n_star, n_gas = zip(*pool.map(thread_dither, args))
+        spec_ifu = np.asarray(spec_ifu)
+        spec_val = np.asarray(spec_val)
+        spec_ifu_g = np.asarray(spec_ifu_g)
+        sim_imag = np.asarray(sim_imag)
+        sim_imag2 = np.asarray(sim_imag2)
+        sim_imag3 = np.asarray(sim_imag3)
+        x_ifu = np.asarray(x_ifu)
+        y_ifu = np.asarray(y_ifu)
+        n_star = np.asarray(n_star)
+        n_gas = np.asarray(n_gas)
         pool.close()
         pool.join()
         del pool
@@ -1607,12 +1609,12 @@ def mk_the_light(outf, x, y, z, vx, vy, vz, x_g, y_g, z_g, vx_g, vy_g,\
     h['CAMX'] = 0
     h['CAMY'] = 0
     h['CAMZ'] = cam
-    h['REDSHIFT'] = np.float(red_0)
+    h['REDSHIFT'] = np.single(red_0)
     h['R'] = ('SSP','Spectral Resolution')
     h['COSMO'] = cosmo.name
     h['H0'] = (cosmo.H0.value, cosmo.H0.unit)
     h['Omega_m'] = cosmo.Om0
-    h['IFUCON'] = (str(np.int(ns))+' ','NFibers')
+    h['IFUCON'] = (str(np.int32(ns))+' ','NFibers')
     h['UNITS'] = '1E-16 erg/s/cm^2'
     h['SSPTEMP'] = template_SSP
 
@@ -1886,7 +1888,7 @@ def regrid(rss_file, outf, template_SSP_control, dir_r='', dir_o='', \
 
     rss = fits.open(dir_r+rss_file)
     dkpcs = rss[0].header['KPCSEC']
-    red_0 = np.float(rss[0].header['REDSHIFT'])
+    red_0 = np.single(rss[0].header['REDSHIFT'])
     cam = rss[0].header['CAMZ']
     seeing = rss[0].header['PSF']
     nw = rss[0].header['NAXIS2']
@@ -1924,7 +1926,7 @@ def regrid(rss_file, outf, template_SSP_control, dir_r='', dir_o='', \
         spec_ifu += spec_noise.T
         spec_ifu_e = get_noise(wl, F0, fib_ind_final.size, SN=noise[0], realization=False).T#spec_noise.T
 
-    nl = int(round((np.amax([np.amax(x_ifu), -np.amin(x_ifu), np.amax(y_ifu), -np.amin(y_ifu)])+1)*2/pix_s))
+    nl = np.int32(round((np.amax([np.amax(x_ifu), -np.amin(x_ifu), np.amax(y_ifu), -np.amin(y_ifu)])+1)*2/pix_s))
 
     ifu = np.zeros([nw, nl, nl])
     ifu_g = np.zeros([nw, nl, nl])
@@ -2043,12 +2045,12 @@ def regrid(rss_file, outf, template_SSP_control, dir_r='', dir_o='', \
     h['CAMX'] = 0
     h['CAMY'] = 0
     h['CAMZ'] = cam
-    h['REDSHIFT'] = np.float(red_0)
+    h['REDSHIFT'] = np.single(red_0)
     h['R'] = (sp_res,'Spectral Resolution')
     h['COSMO'] = cosmo.name
     h['H0'] = (cosmo.H0.value, cosmo.H0.unit)
     h['Omega_m'] = cosmo.Om0
-    h['IFUCON'] = (str(np.int(ns))+' ','NFibers')
+    h['IFUCON'] = (str(np.int32(ns))+' ','NFibers')
     h['UNITS'] = '1E-16 erg/s/cm^2'
     h['WGAS'] = include_gas
 
@@ -2067,8 +2069,8 @@ def regrid(rss_file, outf, template_SSP_control, dir_r='', dir_o='', \
     hlist.update_extend()
     out_fit = dir_o + outf + '.fits'
     hlist.writeto(out_fit, overwrite=1)
-    dir_o1 = dir_o.replace(' ','\ ')
-    out_fit1 = dir_o1+outf+'.fits'
+    #dir_o1 = dir_o.replace(' ','\ ')
+    out_fit1 = dir_o+outf+'.fits'
     compress_gzip(out_fit1)
     print('Datacube done.')
 
@@ -2154,7 +2156,7 @@ def regrid(rss_file, outf, template_SSP_control, dir_r='', dir_o='', \
     h['CAMX'] = 0
     h['CAMY'] = 0
     h['CAMZ'] = cam
-    h['REDSHIFT'] = np.float(red_0)
+    h['REDSHIFT'] = np.single(red_0)
     h['R'] = (sp_res,'Spectral Resolution')
     h['COSMO'] = cosmo.name
     h['H0'] = (cosmo.H0.value, cosmo.H0.unit)
@@ -2221,8 +2223,8 @@ def regrid(rss_file, outf, template_SSP_control, dir_r='', dir_o='', \
     hlist1.update_extend()
     out_fit = dir_o + outf + '_val.fits'
     hlist1.writeto(out_fit, overwrite=1)
-    dir_o1 = dir_o.replace(' ','\ ')
-    out_fit1 = dir_o1 + outf + '_val.fits'
+    #dir_o1 = dir_o.replace(' ','\ ')
+    out_fit1 = dir_o + outf + '_val.fits'
     compress_gzip(out_fit1)
     print('Cube_val done.')
 
@@ -2402,7 +2404,7 @@ def mk_intrinsic_assigned_maps(indir, outdir, star_file, template_SSP, fib_n=7, 
     print(rss_asig.shape)
     print('starting regrid')
 
-    nl = int(round((np.amax([np.amax(x_ifu), -np.amin(x_ifu), np.amax(y_ifu), -np.amin(y_ifu)])+1)*2/pix_s))
+    nl = np.int32(round((np.amax([np.amax(x_ifu), -np.amin(x_ifu), np.amax(y_ifu), -np.amin(y_ifu)])+1)*2/pix_s))
     ifu_asig = np.ones([4, nl, nl])
 
     sigma_rec  =  0.7
@@ -2457,8 +2459,8 @@ def mk_intrinsic_assigned_maps(indir, outdir, star_file, template_SSP, fib_n=7, 
     hlist1.update_extend()
     out_fit = outdir + cubef + '.fits'
     hlist1.writeto(out_fit, overwrite=1)
-    dir_o1 = outdir.replace(' ','\ ')
-    out_fit1 = dir_o1 + cubef + '.fits'
+    #dir_o1 = outdir.replace(' ','\ ')
+    out_fit1 = outdir + cubef + '.fits'
     compress_gzip(out_fit1)
     print('Cube_assig done.')
 
