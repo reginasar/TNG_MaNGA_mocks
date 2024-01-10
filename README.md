@@ -29,8 +29,13 @@ The sample selection was done with -  mk_mangalike_tng_sample.py  - and each moc
       
 
 ### Requirements
+Latest update runs in Python 3.12 (other might work too, but haven't been checked)
 
-Python3: Numpy, Astropy, Scipy
+	Numpy 1.26.3 
+	Astropy 5.3.4
+	Scipy 1.11.4
+   	Multiprocess 0.70.15
+
 
 For step 1 access to TNG simulations is required, as well as installing illustris_python module. Publicly available at https://www.tng-project.org/data/ 
 
