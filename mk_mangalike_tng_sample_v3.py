@@ -151,18 +151,18 @@ manga_mrz = # array (N, 3) with N manga galaxies and their Mass, radius and reds
 selected_tng = - np.ones((manga_mrz.shape[0], 2), dtype=np.int32)
 manga_need_pair = np.ones(manga_mrz.shape[0], dtype=bool)
 snap_ind_manga = np.digitize(manga_mrz[:,2], snapz_bins)
-for ii in range(15):
-    for hh, snap in enumerate(snap_id):
-        manga_index_to_match = np.array((snap_ind_manga==hh) & manga_need_pair)
-        manga_mr = manga_mrz[manga_index_to_match, :2]
-        sample_match, dist_match, non_rep, unas =\
+
+for hh, snap in enumerate(snap_id):
+      manga_index_to_match = np.array((snap_ind_manga==hh) & manga_need_pair)
+      manga_mr = manga_mrz[manga_index_to_match, :2]
+      sample_match, dist_match, non_rep, unas =\
             iterative_bubble_match(manga_mr, tng_pack[snap][:, :2], \
               max_step=40, mr_lim=[0.25, 0.25], radius=1., \
               r_increase=0., more_than=1, subsample=False)
-        selected_tng[manga_index_to_match, 0] = np.where(sample_match!=-1, snap, -1)
-        selected_tng[manga_index_to_match, 1] = \
+      selected_tng[manga_index_to_match, 0] = np.where(sample_match!=-1, snap, -1)
+      selected_tng[manga_index_to_match, 1] = \
             np.where(sample_match!=-1, tng_pack[snap][sample_match, 2], -1)
-        manga_need_pair = np.where(selected_tng[:, 0]==-1, True, False)
+      manga_need_pair = np.where(selected_tng[:, 0]==-1, True, False)
 
 
 
